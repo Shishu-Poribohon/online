@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Up Bulk Sender Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800">
+
+    <header class="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i data-lucide="message-circle" class="w-6 h-6"></i>
+                <h1 class="text-xl font-bold">Cart Up Sender Assistant</h1>
+            </div>
+            <div class="text-sm bg-blue-700 px-3 py-1 rounded-full">Desktop App Mode</div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        <div id="setup-panel" class="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100">
+            <h2 class="text-lg font-semibold mb-4 flex items-center text-gray-700">
+                <i data-lucide="settings" class="w-5 h-5 mr-2"></i> Campaign Setup
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Step 1: Paste Numbers</label>
+                    <textarea id="numbersInput" class="w-full h-40 p-3 border rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="01711..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Step 2: Write Message</label>
+                    <textarea id="messageInput" class="w-full h-40 p-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">*📢 শিশু পরিবহন এ চলছে উইন্টার অফার*</textarea>
+                </div>
+            </div>
+
+            <div class="mt-4 flex items-center space-x-4">
+                <div class="w-48">
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Default Country Code</label>
+                    <input type="text" id="countryCode" value="880" class="w-full p-2 border rounded-md text-sm">
+                </div>
+                <div class="flex-1 text-right">
+                    <button onclick="generateList()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition flex items-center ml-auto">
+                        <i data-lucide="list-video" class="w-5 h-5 mr-2"></i> Generate List
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="dashboard" class="hidden mb-6">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Phone Number</th>
+                            <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsList" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let contacts = [];
+
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            else setTimeout(refreshIcons, 100);
+        }
+
+        function generateList() {
+            const rawNumbers = document.getElementById('numbersInput').value;
+            const message = encodeURIComponent(document.getElementById('messageInput').value);
+            const defaultCode = document.getElementById('countryCode').value;
+
+            contacts = rawNumbers.split('\n').map((line, index) => {
+                let phone = line.replace(/[^0-9]/g, '');
+                if (phone.startsWith('01')) phone = defaultCode + phone.substring(1);
+                return { id: index, phone: phone, message: message };
+            }).filter(c => c.phone.length > 5);
+
+            renderList();
+            document.getElementById('setup-panel').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
+
+        function renderList() {
+            const tbody = document.getElementById('contactsList');
+            tbody.innerHTML = contacts.map(c => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-mono text-gray-900">${c.phone}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="openDesktopApp('${c.phone}', '${c.message}')" 
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm flex items-center ml-auto">
+                            <i data-lucide="send" class="w-4 h-4 mr-2"></i> Open Desktop App
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            refreshIcons();
+        }
+
+        function openDesktopApp(phone, message) {
+            // Using whatsapp:// protocol to trigger the installed desktop app
+            const url = `whatsapp://send?phone=${phone}&text=${message}`;
+            window.location.href = url;
+        }
+
+        window.onload = refreshIcons;
+    </script>
+</body>
+</html>
