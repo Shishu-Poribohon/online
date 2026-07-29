@@ -111,10 +111,10 @@
         function renderList() {
             const tbody = document.getElementById('contactsList');
             tbody.innerHTML = contacts.map(c => `
-                <tr class="hover:bg-gray-50">
+                <tr id="row-${c.id}" class="hover:bg-gray-50 transition-colors duration-300">
                     <td class="px-6 py-4 font-mono text-gray-900">${c.phone}</td>
                     <td class="px-6 py-4 text-right">
-                        <button onclick="openDesktopApp('${c.phone}', '${c.message}')" 
+                        <button onclick="COPY('${c.phone}', '${c.message}', ${c.id})" 
                                 class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm flex items-center ml-auto">
                             <i data-lucide="send" class="w-4 h-4 mr-2"></i> Open Desktop App
                         </button>
@@ -124,11 +124,17 @@
             refreshIcons();
         }
 
-        function openDesktopApp(phone, message) {
-            // Using whatsapp:// protocol to trigger the installed desktop app
-            const url = `whatsapp://send?phone=${phone}&text=${message}`;
-            window.location.href = url;
-        }
+        function openDesktopApp(phone, message, id) {
+    const url = `whatsapp://send?phone=${phone}&text=${message}`;
+    window.location.href = url;
+
+    // Change the row color to green
+    const row = document.getElementById(`row-${id}`);
+    if (row) {
+        row.classList.remove('hover:bg-gray-50'); 
+        row.classList.add('bg-emerald-100'); // Changes background to a soft green
+    }
+}
 
         window.onload = refreshIcons;
     </script>
